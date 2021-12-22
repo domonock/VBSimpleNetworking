@@ -1,6 +1,7 @@
 public struct VBSimpleNetworking {
-    public private(set) var text = "Hello, World!"
-
-    public init() {
+    
+    static func getDataFrom<T: Decodable>(url: String, dataType: T.Type) -> T {
+        return VBServerManager.getDataFrom(url: url, dataType: dataType)
     }
+    
 }
