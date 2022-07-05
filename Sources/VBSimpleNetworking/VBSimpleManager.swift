@@ -34,7 +34,7 @@ class VBServerManager {
         return
     }
     
-    static func getDataFrom<T: Decodable>(url: String, dataType: T.Type) -> T {
+    static func getDataFrom<T: Decodable>(url: String, dataType: T.Type, completion: @escaping (Result<T, Error>) -> Void) {
         group.enter()
         VBServerManager.getSomeData(url: url, dataType: dataType ) { result in
             switch result {
@@ -42,6 +42,7 @@ class VBServerManager {
                 self.lastResponseObject = resultObj
                 self.group.leave()
             case .failure(let error):
+                completion(.failure(error))
                 if isDebugMode {
                     print(error)
                 }
@@ -51,12 +52,14 @@ class VBServerManager {
         self.group.wait()
         group.notify(queue: .global()) {
             if isDebugMode {
-                if let obj = lastResponseObject {
-                    print("DataLoaded: \(obj)")
+                if let obj = lastResponseObject as? T {
+                    completion(.success(obj))
+                } else {
+                    let error = NSError()
+                    completion(.failure(error))
                 }
             }
         }
-        return lastResponseObject as! T
     }
     
     static func getImages(images: [String], completion: @escaping (Result<[Data], Error>) -> Void) {
