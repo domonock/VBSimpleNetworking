@@ -9,7 +9,6 @@ import Foundation
 class VBServerManager {
     private static let group = DispatchGroup()
     public static var lastResponseObject: Any?
-    public static var isDebugMode = false
     private static let semaphore = DispatchSemaphore(value: 2)
     private static func getSomeData<T: Decodable>(url: String, dataType: T.Type, completion: @escaping (Result<T, Error>) -> Void) {
         guard let url = URL(string: url) else {
@@ -43,21 +42,17 @@ class VBServerManager {
                 self.group.leave()
             case .failure(let error):
                 completion(.failure(error))
-                if isDebugMode {
-                    print(error)
-                }
+                print(error)
                 self.group.leave()
             }
         }
         self.group.wait()
         group.notify(queue: .global()) {
-            if isDebugMode {
-                if let obj = lastResponseObject as? T {
-                    completion(.success(obj))
-                } else {
-                    let error = NSError()
-                    completion(.failure(error))
-                }
+            if let obj = lastResponseObject as? T {
+                completion(.success(obj))
+            } else {
+                let error = NSError()
+                completion(.failure(error))
             }
         }
     }
